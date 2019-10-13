@@ -1,0 +1,1055 @@
+%  kblocks.sty
+%       TikZ-based block-diagram package for control theory applications
+%       version 1.0 (February 2019)
+%       Author: Somefun Oluwasegun {oasomefun@futa.edu.ng}
+%		Change Log:
+%		significant improvements and introduction of new macros and annotation
+
+%		Credits:
+% 	    (2014): motivated by the helpful pointers in https://tex.stackexchange.com/users/14704/s-c
+%		(2005): motivated by the TikZ-bloques package by Alejandro Garces {Alejandro Garcesalejandrogarces@gmail.com}
+%		
+
+% Copyright (c) 2019 by Oluwasegun Somefun <oasomefun@futa.edu.ng>.
+
+% MIT LICENSE
+% Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+% and associated documentation files (the "Software"), to deal in the Software without restriction,
+% including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+% and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+% subject to the following conditions:
+%
+% The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+%
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+% TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+% IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+% WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+% OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+%
+
+% Import Libraries
+\usepackage{tikz,circuitikz}
+\usepgflibrary{shapes.misc}
+\usetikzlibrary{math,calc,arrows,decorations.pathmorphing,decorations.markings,
+arrows.meta,backgrounds,fit,shadows}
+
+% Helpful
+
+\newcommand{\horizdist}{1.2cm}
+\newcommand{\sfghorizdist}{\horizdist*2}
+\newcommand{\verticdist}{1.2cm}
+\newcommand{\phasedist}{3.5cm}
+\newcommand{\minheight}{0.7cm}
+\newcommand{\textsize}{\footnotesize}
+\newcommand{\backgroundcolor}{white}
+\newcommand{\colortext}{black}
+\newcommand{\linecolor}{black}
+\newcommand{\dark}{0}
+\newcommand{\linetype}{very thick}
+\newcommand{\linepathtype}{semithick}
+
+\newcommand{\kShadow}{\renewcommand{\dark}{1}}
+\newcommand{\kColorB}[1]{\renewcommand{\backgroundcolor}{#1}}
+\newcommand{\kColorT}[1]{\renewcommand{\colortext}{#1}}
+\newcommand{\kColorL}[1]{\renewcommand{\linecolor}{#1}}
+
+\newcommand{\kScaleDistY}[1][1]{
+\renewcommand{\verticdist}{1.2cm * #1}
+}
+
+\newcommand{\kScaleDistX}[1][1]{
+\renewcommand{\horizdist}{1.5cm * #1}
+}
+
+\newdimen\xc
+\newdimen\yc
+
+\newcommand*{\ExtractCoordinate}[1]{
+\path (#1);
+\pgfgetlastxy{\xc}{\yc};
+}%
+
+% Global styles
+\tikzset{every node/.style={anchor=center, text centered, align=center}}
+
+\tikzset{midarrow/.style={decoration={markings,
+mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
+
+
+% BLOCK DIAGRAM
+
+% Start Nodes
+
+\newcommand{\kStartNode}[2][]{
+% name coordinate label
+	\node (#2) {\color{\colortext}\textsize{#1}};
+}
+
+\newcommand{\kStartNodec}[3][]{
+	\node (#3) at #2 {\color{\colortext}\textsize{#1}};
+}
+
+
+% Area Cover Rectangle
+%% Usage [colour]{ref node}{north shift}{south shift}{west shift}{east shift}
+
+\newcommand{\kCoverRect}[6][black]{
+
+    \coordinate (centn) at (#2.north);
+    \coordinate (cents) at (#2.south);
+    \coordinate (cente) at (#2.east);
+    \coordinate (centw) at (#2.west);
+
+    \def\dn{#3};
+    \def\ds{#4};
+    \def\dw{#5};
+    \def\de{#6};
+
+    \ifx\dn\empty
+    \def\dn{0};
+    \else
+    \fi
+    \ifx\ds\empty
+    \def\ds{0};
+    \else
+    \fi
+    \ifx\dw\empty
+    \def\dw{0};
+    \else
+    \fi
+    \ifx\de\empty
+    \def\de{0};
+    \else
+    \fi
+
+
+    \newdimen\xn;%
+    \newdimen\yn;%
+    \path (centn); \pgfgetlastxy{\xn}{\yn};
+    \newdimen\xs;%
+    \newdimen\ys;%
+    \path (cents); \pgfgetlastxy{\xs}{\ys};
+
+    \newdimen\xw;%
+    \newdimen\yw;%
+    \path (centw); \pgfgetlastxy{\xw}{\yw};
+    \newdimen\xe;%
+    \newdimen\ye;%
+    \path (cente); \pgfgetlastxy{\xe}{\ye};
+
+    \newdimen\xonw;%
+    \newdimen\xone;%
+    \newdimen\xose;%
+    \newdimen\xosw;%
+    \newdimen\xon;%
+    \newdimen\yon;%
+    \newdimen\xos;%
+    \newdimen\yos;%
+
+    \tikzmath{
+        \xonw = \xw - \dw;%
+        \xone = \xe + \de;%
+        \xon = \xn;%
+        \yon = \yn + \dn;%
+        \xosw = \xw - \dw;%
+        \xose = \xe + \de;%
+        \xos = \xs;%
+        \yos = \ys - \ds;%
+}
+
+	\coordinate [label=] (BFitN) at ($(\xon,\yon)$);
+    \coordinate [label=] (BFitS) at ($(\xos,\yos)$);
+    \coordinate [label=] (BFitW) at ($(\xosw,\yw)$);
+    \coordinate [label=] (BFitE) at ($(\xone,\ye)$);
+
+    \coordinate [label=] (BFitNW) at ($(\xonw,\yon)$);
+    \coordinate [label=] (BFitNE) at ($(\xone,\yon)$);
+	\coordinate [label=] (BFitSW) at ($(\xosw,\yos)$);
+    \coordinate [label=] (BFitSE) at ($(\xose,\yos)$);
+
+\begin{scope}[on background layer]
+    \draw [color=#1, dashed] (BFitSW) -- (BFitSE) -- (BFitNE) -- (BFitNW) -- (BFitSW);
+\end{scope}
+
+}
+
+% Cover Text
+%% Usage: [optional shift dimension]{from node label}{to current tf node label}{tf text content}
+
+\newcommand{\kCoverTextRight}[5]{
+    \def\dxt{#1};
+    \def\dyt{#2};
+
+    \ifx\dxt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \ifx\dyt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \node [right of= BFitE, node distance= 0.2cm, xshift= \dxt, yshift = \dyt, font=\textsize] (#3) {\color{\colortext}#4};
+}
+\newcommand{\kCoverTextLeft}[5]{
+    \def\dxt{#1};
+    \def\dyt{#2};
+
+    \ifx\dxt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \ifx\dyt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \node [left of= BFitW, node distance= 0.2cm, xshift= \dxt, yshift = \dyt, font=\textsize] (#3) {\color{\colortext}#4};
+}
+
+\newcommand{\kCoverTextAbove}[5]{
+    \def\dxt{#1};
+    \def\dyt{#2};
+
+    \ifx\dxt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \ifx\dyt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \node [above of= BFitN, node distance= 0.2cm, xshift= \dxt, yshift = \dyt, font=\textsize] (#3) {\color{\colortext}#4};
+}
+\newcommand{\kCoverTextBelow}[5]{
+    \def\dxt{#1};
+    \def\dyt{#2};
+
+    \ifx\dxt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \ifx\dyt\empty
+    \def\dxt{0};
+    \else
+    \fi
+
+    \node [below of= BFitS, node distance= 0.2cm, xshift= \dxt, yshift = \dyt, font=\textsize] (#3) {\color{\colortext}#4};
+}
+
+
+% Arithmetic Summer Blocks
+%% Usage: {from node label}{to current sum node label}{optional horizontal position shift}
+
+\newcommand{\kMinusPlusDown}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+
+\newcommand{\kMinusMinusDown}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusMinusDown}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusPlusDown}[3]{
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+
+\newcommand{\kMinusPlusUp}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+\newcommand{\kMinusMinusUp}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusMinusUp}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusPlusUp}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+\newcommand{\kPlusPlusMinus}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+\newcommand{\kPlusMinusMinus}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusMinusPlus}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+
+\newcommand{\kPlusPlusPlus}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, right of= #1, node distance= \horizdist+\dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, right of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+
+% Circular Gain Block
+\newcommand{\kGain}[4][]{
+    \node [draw=\linecolor, circle, right of= #1, node distance= \horizdist,
+    minimum size = 1.5em, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#2) {\color{\colortext}#3};
+}
+
+%% Rectangular TF Block
+
+%% Usage:
+%\kTF {current tf node label}[tf text content]
+%\kTFCs {coordinates}{current tf node label}[tf text content]
+
+\newcommand{\kTF}[2]{
+    \node [draw=\linecolor, rectangle, node distance= \horizdist,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#1) {\color{\colortext}#2};
+}
+
+\newcommand{\kTFCs}[3]{
+    \node [draw=\linecolor, rectangle, node distance= \horizdist,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#2)  at (#1) {\color{\colortext}#3};
+}
+
+%% Usage: [optional shift dimension]{from node label}{to current tf node label}{tf text content}
+\newcommand{\kTFRight}[4][]{
+    \def\dxtf{#1};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, right of= #2, node distance= \horizdist + \dxtf,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#3) {\color{\colortext}#4};
+}
+
+\newcommand{\kTFLeft}[4][]{
+    \def\dxtf{#1};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, left of= #2, node distance= \horizdist + \dxtf,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#3) {\color{\colortext}#4};
+}
+
+\newcommand{\kTFAbove}[4][]{
+    \def\dytfb{#1};
+
+    \ifx\dytfb\empty
+    \def\dytfb{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, above of= #2, node distance= \verticdist + \dytfb,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#3) {\color{\colortext}#4};
+
+}
+
+\newcommand{\kTFBelow}[4][]{
+    \def\dytfb{#1};
+
+    \ifx\dytfb\empty
+    \def\dytfb{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, below of= #2, node distance= \verticdist + \dytfb,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#3) {\color{\colortext}#4};
+}
+
+%% Usage: {vertical shift dimension}{horizontal shift dimension}{from node label}{to current tf node label}{tf text content}
+
+% TF: Right
+% Above
+\newcommand{\kTFAboveRight}[5]{
+    \def\dytf{#1};
+
+    \ifx\dytf\empty
+    \def\dytf{0};
+    \else
+    \fi
+
+    \def\dxtf{#2};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, above of= #3, node distance= 1.2cm + \dytf, xshift=1.2cm+\dxtf,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#4) {\color{\colortext}#5};
+}
+% Line: Right Down
+\newcommand{\kTFBelowRight}[5]{
+    \def\dytf{#1};
+
+    \ifx\dytf\empty
+    \def\dytf{0};
+    \else
+    \fi
+
+    \def\dxtf{#2};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, below of= #3, node distance= 1.2cm + \dytf, xshift=1.2cm+\dxtf,
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#4) {\color{\colortext}#5};
+}
+
+% TF Left
+% Above
+\newcommand{\kTFAboveLeft}[5]{
+    \def\dytf{#1};
+
+    \ifx\dytf\empty
+    \def\dytf{0};
+    \else
+    \fi
+
+    \def\dxtf{#2};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+    \node [draw=\linecolor, rectangle, above of= #3, node distance=1.2cm + \dytf, xshift=-(1.2cm+\dxtf),
+    minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+    font=\textsize] (#4) {\color{\colortext}#5};
+}
+% Below
+\newcommand{\kTFBelowLeft}[5]{
+    \def\dytf{#1};
+
+    \ifx\dytf\empty
+    \def\dytf{0};
+    \else
+    \fi
+
+    \def\dxtf{#2};
+
+    \ifx\dxtf\empty
+    \def\dxtf{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, rectangle, below of= #3, node distance=1.2cm + \dytf, xshift=-(1.2cm+\dxtf),
+     minimum height = \minheight, \linetype, fill=\backgroundcolor, drop shadow={opacity=\dark},
+     font=\textsize] (#4) {\color{\colortext}#5};
+}
+
+
+%  Mark Visible Circular Nodes
+%% Usage: [optional distance shift]{optional node label}{from node label}{to current node label}
+
+% Place Node Right
+\newcommand{\kMarkNodeRight}[4][]{
+    \def\dxnr{#1};
+
+    \ifx\dxnr\empty
+    \def\dxnr{0};
+    \else
+    \fi
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
+    right of = #3, node distance= 1.2cm + \dxnr] (#4) {\textsize{#2}};
+
+}
+
+% Place Node Left
+\newcommand{\kMarkNodeLeft}[4][]{
+    \def\dxnl{#1};
+
+    \ifx\dxnl\empty
+    \def\dxnl{0};
+    \else
+    \fi
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
+    left of = #3, node distance= 1.2cm + \dxnl] (#4) {\textsize{#2}};
+
+}
+% Place Node Above
+\newcommand{\kMarkNodeAbove}[4][]{
+    \def\dxna{#1};
+
+    \ifx\dxna\empty
+    \def\dxna{0};
+    \else
+    \fi
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
+    above of = #3, node distance= 1.2cm + \dxna] (#4) {\textsize{#2}};
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
+    above of = #3, node distance= 1.2cm + \dxna] (#4) {\textsize{#2}};
+
+}
+% Place Node Below
+\newcommand{\kMarkNodeBelow}[4][]{
+    \def\dxnb{#1};
+
+    \ifx\dxnb\empty
+    \def\dxnb{0};
+    \else
+    \fi
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
+    below of = #3, node distance= 1.2cm + \dxnb] (#4) {\textsize{#2}};
+
+}
+
+% Place a Reference Invisible Node relative to other nodes
+%% Usage: [optional distance shift]{from node label}{to current coordinate label}{direction shift}{coordinate text label}
+
+\newcommand{\kJumpCSRight}[5][]{
+    \def\dxj{#1};
+    \ifx\dxj\empty
+    \def\dxj{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.east) + (0,#4)$);
+    \coordinate[right of= tmpn, node distance= 1cm + \dxj, font=\textsize, label=\tiny{#5}] (#3);
+}
+\newcommand{\kJumpCSLeft}[5][]{
+    \def\dxj{#1};
+    \ifx\dxj\empty
+    \def\dxj{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.west) + (0,#4)$);
+    \coordinate[left of= tmpn, node distance= 1cm + \dxj, font=\textsize, label=\tiny{#5}] (#3);
+}
+\newcommand{\kJumpCSAbove}[5][]{
+    \def\dxj{#1};
+    \ifx\dxj\empty
+    \def\dxj{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.north) + (#4,0)$);
+    \coordinate[above of= tmpn, node distance= 1cm + \dxj, font=\textsize, label=\tiny{#5}] (#3);
+}
+\newcommand{\kJumpCSBelow}[5][]{
+    \def\dxj{#1};
+    \ifx\dxj\empty
+    \def\dxj{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.south) + (#4,0)$);
+    \coordinate[below of= tmpn, node distance= 1cm + \dxj, font=\textsize, label=\tiny{#5}] (#3);
+}
+
+% Place a Reference Invisible Node at any specific coordinate
+%% Usage: {current coordinate label}{coordinate (x,y)}
+\newcommand{\kJumpCS}[2]{
+    \coordinate (#1) at (#2);
+}
+
+% Links %% swap, near end,mid, add label text above lines or besides
+%% Usage: [optional signal label]{from node label}{to node label}
+
+% Link Left or Right, Up or Down
+\newcommand{\kLink}[3][]{
+    \draw [-latex,\linecolor, \linepathtype] (#2) -- node[auto,above] {\textsize{#1}} (#3);
+}
+% no arrow
+\newcommand{\kLinkn}[3][]{
+    \draw [\linecolor, \linepathtype] (#2) -- node[auto,above] {\textsize{#1}} (#3);
+}
+% Link Horizontal(Right or Left) Vertical(Up or Down)
+%% Usage: [optional link label]{from node label}{to current node label}{direction}{direction shift}
+
+% Link: Left Up, Left Down, Right Up, Right Down
+
+\newcommand{\kLinkHV}[5][]{
+    \def\direct{#4};
+    \draw[-latex, \linecolor, \linepathtype] (#2) -|  node[near end, above left] {\textsize{#1}} ($(#3.\direct) + (0,#5)$);
+}
+% Link Vertical(Up or Down) Horizontal(Right or Left)
+% Link Up Left, Up Right, Down Left, Down Right
+\newcommand{\kLinkVH}[5][]{
+    \def\direct{#4};
+    \draw[-latex, \linecolor, \linepathtype] (#2) |-  node[near end, below] {\textsize{#1}} ($(#3.\direct) + (0,#5)$);
+}
+
+%% Usage: {optional link scale}{link label}{from node}{to node}{from node direction shift}{to node direction shift}
+
+\newcommand{\kLinkHVHRight}[6][]{
+    \def\dxr{#1};
+    \ifx\dxr\empty
+    \def\dxr{0};
+    \else
+    \fi
+    \coordinate (tmplr) at ($(#3.east) + (0,#5)$);
+    \coordinate (tmp) at ($(#3.east) + (0,#5) + (0.33+\dxr,0)$);
+    \draw[-latex, \linecolor, \linepathtype] (tmplr) -| (tmp) node[at end, below right] {\textsize{#2}} |-($(#4.east) + (0,#6)$);
+}
+\newcommand{\kLinkHVHLeft}[6][]{
+    \def\dxl{#1};
+    \ifx\dxl\empty
+    \def\dxl{0};
+    \else
+    \fi
+    \coordinate (tmpll) at ($(#3.west) + (0,#5)$);
+    \coordinate (tmp) at ($(#3.west) + (0,#5) + (-0.33-\dxl,0)$);
+    \draw[-latex, \linecolor, \linepathtype] (tmpll) -| (tmp) node[at end, above left] {\textsize{#2}} |- ($(#4.west) + (0,#6)$);
+}
+% Link Full Feedback/FeedForward Horizontal(Right or Left) Vertical(Up or Down)
+%% Usage: {optional link shift}{unity link label}{from node}{to node}{from node direction shift}{to node direction shift}
+
+% Above
+\newcommand{\kLinkVHHVAbove}[6][]{
+    \def\dxb{#1};
+    \ifx\dxb\empty
+    \def\dxb{0};
+    \else
+    \fi
+    \coordinate (tmpb) at ($(#3.north) + (#5,0)$);
+    \coordinate (tmpc) at ($(#4.north) + (#6,0)$);
+
+    \newdimen\xca;
+    \newdimen\yca;
+    \path (tmpb); \pgfgetlastxy{\xca}{\yca};
+    \newdimen\xcb;
+    \newdimen\ycb;
+    \path (tmpc); \pgfgetlastxy{\xcb}{\ycb};
+
+    \newdimen\xcr;
+
+    \tikzmath{
+        \xcr = 0.5 * (\xca+\xcb);
+    }
+
+	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,1cm-\dxb) $);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.north) + (#6,0)$);
+}
+% Below
+\newcommand{\kLinkVHHVBelow}[6][]{
+    \def\dxb{#1};
+
+    \ifx\dxb\empty
+    \def\dxb{0};
+    \else
+    \fi
+    \coordinate (tmpb) at ($(#3.south) + (#5,0)$);
+    \coordinate (tmpc) at ($(#4.south) + (#6,0)$);
+
+    \newdimen\xca;
+    \newdimen\yca;
+    \path (tmpb); \pgfgetlastxy{\xca}{\yca};
+    \newdimen\xcb;
+    \newdimen\ycb;
+    \path (tmpc); \pgfgetlastxy{\xcb}{\ycb};
+
+    \newdimen\xcr;
+
+    \tikzmath{
+        \xcr = 0.5 * (\xca+\xcb);
+    }
+
+	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,-1cm-\dxb) $);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.south) + (#6,0)$);
+}
+
+% Link  Feedback/FeedForward with a TF Block in between
+%% Usage: {signal label before tf}{signal label after tf}{from node}{tf node}{to node}{from node direction shift}{tf direction shift}{to node direction shift}
+\newcommand{\kLinkVHTFHVBelow}[8]{
+    \coordinate (tmpb) at ($(#3.south) + (#6,0)$);
+    \coordinate (tmpu) at ($(#4.east) + (0,#7)$);
+    \coordinate (tmpv) at ($(#4.west) + (0,#7)$);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- node[auto,above left] {\textsize{#1}} (tmpu);
+    \draw [-latex,\linecolor, \linepathtype] (tmpv) -| node[auto,above left] {\textsize{#2}} ($(#5.south) + (#8,0)$);
+}
+\newcommand{\kLinkVHTFHVBelowRight}[8]{
+    \coordinate (tmpb) at ($(#3.south) + (#6,0)$);
+    \coordinate (tmpu) at ($(#4.west) + (0,#7)$);
+    \coordinate (tmpv) at ($(#4.east) + (0,#7)$);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- node[auto,above left] {\textsize{#1}} (tmpu);
+    \draw [-latex,\linecolor, \linepathtype] (tmpv) -| node[auto,above left] {\textsize{#2}} ($(#5.south) + (#8,0)$);
+}
+\newcommand{\kLinkVHTFHVAbove}[8]{
+    \coordinate (tmpb) at ($(#3.north) + (#6,0)$);
+    \coordinate (tmpu) at ($(#4.east) + (0,#7)$);
+    \coordinate (tmpv) at ($(#4.west) + (0,#7)$);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- node[auto,above left] {\textsize{#1}} (tmpu);
+    \draw [-latex,\linecolor, \linepathtype] (tmpv) -| node[auto,above left] {\textsize{#2}} ($(#5.north) + (#8,0)$);
+}
+\newcommand{\kLinkVHTFHVAboveRight}[8]{
+    \coordinate (tmpb) at ($(#3.north) + (#6,0)$);
+    \coordinate (tmpu) at ($(#4.west) + (0,#7)$);
+    \coordinate (tmpv) at ($(#4.east) + (0,#7)$);
+    \draw [-latex,\linecolor, \linepathtype] (tmpb) |- node[auto,above left] {\textsize{#1}} (tmpu);
+    \draw [-latex,\linecolor, \linepathtype] (tmpv) -| node[auto,above left] {\textsize{#2}} ($(#5.north) + (#8,0)$);
+}
+
+
+% Cross Links
+\newcommand{\kLinkCrossLeftAbove}[2]{
+    \coordinate [above of=#1, node distance= \verticdist, xshift=-\horizdist] (tmp);
+	\draw[-latex, \linecolor, \linepathtype] (#1)|-(tmp) -- ++(-\horizdist/2,0) -- ($(#2)-(0,\verticdist)$) -- (#2);
+}
+
+\newcommand{\kLinkCrossLeftBelow}[2]{
+  \coordinate [below of=#1, node distance= \verticdist, xshift=-\horizdist] (tmp);
+	\draw[-latex, \linecolor, \linepathtype] (#1)|-(tmp) -- ++(-\horizdist/2,0) -- ($(#2)+(0,\verticdist)$) -- (#2);
+}
+
+\newcommand{\kLinkCrossRightAbove}[2]{
+    \coordinate [above of=#1, node distance= \verticdist, xshift=\horizdist] (tmp);
+	\draw[-latex, \linecolor, \linepathtype] (#1)|-(tmp) -- ++(\horizdist/2,0) -- ($(#2)-(0,\verticdist)$) -- (#2);
+}
+
+\newcommand{\kLinkCrossRightBelow}[2]{
+  \coordinate [below of=#1, node distance= \verticdist, xshift=\horizdist] (tmp);
+  \draw[-latex, \linecolor, \linepathtype] (#1)|-(tmp) -- ++(\horizdist/2,0) -- ($(#2)+(0,\verticdist)$) -- (#2);
+}
+
+
+% Link Inputs Invisible Node
+%% Usage: [optional distance shift]{from node label}{to current node label}{in label}{direction}{direction shift}
+
+\newcommand{\kInRight}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.east) + (0,#5)$);
+
+    \node[right of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (#3)--(tmpn);
+}
+
+\newcommand{\kInLeft}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.west) + (0,#5)$);
+
+    \node[left of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (#3)--(tmpn);
+}
+
+\newcommand{\kInUp}[5][]{
+    \def\dxina{#1};
+    \ifx\dxina\empty
+    \def\dxina{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.north) + (#5,0)$);
+
+    \node[above of= tmpn, node distance= 1.2cm + \dxina, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (#3)--(tmpn);
+}
+
+\newcommand{\kInDown}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.south) + (#5,0)$);
+
+    \node[below of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (#3)--(tmpn);
+}
+
+
+% Link Outputs Invisible Node
+%% Usage: [optional distance shift]{from node label}{to current node label}{out signal label}{direction shift}
+\newcommand{\kOutRight}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.east) + (0,#5)$);
+
+    \node[right of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (tmpo)--(#3);
+}
+
+\newcommand{\kOutLeft}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.west) + (0,#5)$);
+
+    \node[left of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (tmpo)--(#3);
+}
+
+\newcommand{\kOutUp}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.north) + (#5,0)$);
+
+    \node[above of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (tmpo)--(#3);
+}
+
+\newcommand{\kOutDown}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.south) + (#5,0)$);
+
+    \node[below of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, \linepathtype] (tmpo)--(#3);
+}
+
+% ----------------------------------------------------------------------------------------
+
+% SIGNAL FLOW GRAPHS
+
+\newcommand{\sfgStart}[3]{
+	\node[draw,circle,fill=\linecolor,inner sep=0pt, outer sep=0pt, minimum size=0.5em,
+	node distance= \horizdist,label=below:\color{\colortext}\textsize{#3}] (#1) at #2 {};
+}
+
+\newcommand{\sfgNStart}[3]{
+	\node[draw,circle,fill=\linecolor,inner sep=0pt, outer sep=0pt, minimum size=0.5em,
+	node distance= \horizdist,label=below:\color{\colortext}\textsize{#3}] (#1) at #2 {};
+}
+
+\newcommand{\sfgNodeR}[5][]{
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
+	right of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
+    \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
+}
+
+\newcommand{\sfgNodeL}[5][]{
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
+	left of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
+    \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
+}
+
+\newcommand{\sfgNodeU}[5][]{
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
+	above of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
+    \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
+}
+
+\newcommand{\sfgNodeD}[5][]{
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
+	below of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
+    \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
+}
+
+
+\newcommand{\sfgLinkSelfR}[2][]{
+	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
+	(#2) to [out=45,in=-45] node[right] {\textsize{#1}} (#2);
+}
+
+\newcommand{\sfgLinkSelfL}[2][]{
+	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
+	(#2) to [out=-135,in=-135] node[left] {\textsize{#1}} (#2);
+}
+
+\newcommand{\sfgLinkSelfU}[2][]{
+	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
+	(#2) to [in=45,out=135] node[above] {\textsize{#1}} (#2);
+}
+
+\newcommand{\sfgLinkSelfD}[2][]{
+	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
+	(#2) to [in=225,out=315] node[below] {\textsize{#1}} (#2);
+}
+
+\newcommand{\sfgCLinkFlip}[4][]{
+	\draw[midarrow, bend right=60] (#2) to node[#4] {\textsize{#1}} (#3);
+}
+\newcommand{\sfgCLink}[4][]{
+	\draw[midarrow, bend left=60] (#2) to node[#4] {\textsize{#1}} (#3);
+}
+%% node label positioning: at start near start midway near end at end, above below, sloped
