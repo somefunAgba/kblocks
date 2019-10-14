@@ -21,11 +21,9 @@ on creating control block diagrams with the kblocks macro.
 
 Licensing of this package is covered by the MIT Licence.
 
-Any feedback is welcome: oasomefun@futa.edu.ng
 My wish is that you find it helpful. Don’t forget to share and like. 
 Please feel free to e-mail me for any improvement or suggestion with respect to 
 using kblocks and making it useful for researchers, students and others involved
 in the applications and field of control theory.
 
-
-Author: Oluwasegun Somefun
+Any feedback is welcome: oasomefun@futa.edu.ng.<Oluwasegun Somefun>
