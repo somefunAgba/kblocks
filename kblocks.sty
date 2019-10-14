@@ -1,6 +1,6 @@
 %  kblocks.sty
 %       TikZ-based block-diagram package for control theory applications
-%       version 1.0 (February 2019)
+%       version 1.0 (October 2019)
 %       Author: Somefun Oluwasegun {oasomefun@futa.edu.ng}
 %		Change Log:
 %		significant improvements and introduction of new macros and annotation
@@ -28,8 +28,23 @@
 % OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 %
 
+\typeout{**}
+
+\typeout{kblocks: A package to easily typeset Control Block Diagrams and Signal
+Flow Graphs with TikZ/PGF.}
+
+\typeout{(c) 2019. Oluwasegun Somefun}
+
+\typeout{*}
+
+\typeout{--Attention: The package has external dependency on TikZ/PGF.}
+
+\typeout{This package is covered with the MIT License.}
+
+\typeout{**}
+
 % Import Libraries
-\usepackage{tikz,circuitikz}
+\RequirePackage{tikz,circuitikz}
 \usepgflibrary{shapes.misc}
 \usetikzlibrary{math,calc,arrows,decorations.pathmorphing,decorations.markings,
 arrows.meta,backgrounds,fit,shadows}
@@ -62,6 +77,7 @@ arrows.meta,backgrounds,fit,shadows}
 \renewcommand{\horizdist}{1.5cm * #1}
 }
 
+% Global variables for Coordinate Calculations
 \newdimen\xc
 \newdimen\yc
 
@@ -75,6 +91,15 @@ arrows.meta,backgrounds,fit,shadows}
 
 \tikzset{midarrow/.style={decoration={markings,
 mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
+
+% DEDICATED ENVIRONMENT
+
+%% Usage:
+%\begin{kblock}
+%
+%\end{kblock}
+
+\newenvironment{kblock}{\begin{tikzpicture}\begin{scope}}{\end{scope}\end{tikzpicture}}
 
 
 % BLOCK DIAGRAM
@@ -191,8 +216,10 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \else
     \fi
 
-    \node [right of= BFitE, node distance= 0.2cm, xshift= \dxt, yshift = \dyt, font=\textsize] (#3) {\color{\colortext}#4};
+    \node [right of= BFitE, node distance= 0.2cm, xshift= \dxt, yshift = \dyt,
+    font=\textsize] (#3) {\color{\colortext}#4};
 }
+
 \newcommand{\kCoverTextLeft}[5]{
     \def\dxt{#1};
     \def\dyt{#2};
