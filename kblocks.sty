@@ -1,6 +1,9 @@
+% some LaTeX code
 %  kblocks.sty
 %       TikZ-based block-diagram package for control theory applications
+%		version 2.0 (February 2021)
 %       version 1.0 (October 2019)
+%
 %       Author: Somefun Oluwasegun {oasomefun@futa.edu.ng}
 %		Change Log:
 %		significant improvements and introduction of new macros and annotation
@@ -10,7 +13,7 @@
 %		(2005): motivated by the TikZ-bloques package by Alejandro Garces {Alejandro Garcesalejandrogarces@gmail.com}
 %		
 
-% Copyright (c) 2019 by Oluwasegun Somefun <oasomefun@futa.edu.ng>.
+% Copyright (c) 2021 by Oluwasegun Somefun <oasomefun@futa.edu.ng>.
 
 % MIT LICENSE
 % Permission is hereby granted, free of charge, to any person obtaining a copy of this software
@@ -33,7 +36,7 @@
 \typeout{kblocks: A package to easily typeset Control Block Diagrams and Signal
 Flow Graphs with TikZ/PGF.}
 
-\typeout{(c) 2019. Oluwasegun Somefun}
+\typeout{(c) 2021. Oluwasegun Somefun}
 
 \typeout{*}
 
@@ -47,7 +50,8 @@ Flow Graphs with TikZ/PGF.}
 \RequirePackage{tikz,circuitikz}
 \usepgflibrary{shapes.misc}
 \usetikzlibrary{math,calc,arrows,decorations.pathmorphing,decorations.markings,
-arrows.meta,backgrounds,fit,shadows}
+arrows.meta,backgrounds,fit,shadows,matrix,chains,scopes,positioning,
+	decorations.pathreplacing,decorations.text,shapes.multipart,graphs,external}
 
 % Helpful
 
@@ -64,6 +68,10 @@ arrows.meta,backgrounds,fit,shadows}
 \newcommand{\linetype}{very thick}
 \newcommand{\linepathtype}{semithick}
 
+\newcommand{\kmT}[1]{$\:\bm{#1}\:$} % block math text with 1 left-right border spacing
+
+\newcommand{\kmTw}[1]{$\:\:\: \bm{#1} \:\:\:$} %block math text with wider left-right border spacing
+
 \newcommand{\kShadow}{\renewcommand{\dark}{1}}
 \newcommand{\kColorB}[1]{\renewcommand{\backgroundcolor}{#1}}
 \newcommand{\kColorT}[1]{\renewcommand{\colortext}{#1}}
@@ -76,6 +84,9 @@ arrows.meta,backgrounds,fit,shadows}
 \newcommand{\kScaleDistX}[1][1]{
 \renewcommand{\horizdist}{1.5cm * #1}
 }
+
+% to add very very thick width for vector lines
+\tikzset{veclinetype/.style={line width=2.0pt}}
 
 % Global variables for Coordinate Calculations
 \newdimen\xc
@@ -117,7 +128,7 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 
 
 % Area Cover Rectangle
-%% Usage [colour]{ref node}{north shift}{south shift}{west shift}{east shift}
+%% Usage [colour]{ref node}{north shift dimension}{south shift dimension}{west shift dimension}{east shift dimension}
 
 \newcommand{\kCoverRect}[6][black]{
 
@@ -273,7 +284,7 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 
 % Arithmetic Summer Blocks
 %% Usage: {from node label}{to current sum node label}{optional horizontal position shift}
-
+% left down
 \newcommand{\kMinusPlusDown}[3]{
 
     \def\dxpm{#3};
@@ -322,6 +333,38 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
 }
 
+\newcommand{\kPlusMinusDownPlaceAbove}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, above of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, above of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
+\newcommand{\kPlusMinusDownPlaceBelow}[3]{
+
+    \def\dxpm{#3};
+
+    \ifx\dxpm\empty
+    \def\dxpm{0};
+    \else
+    \fi
+
+    \node [draw=\linecolor, circle,minimum size=1.5em, below of= #1, node distance= \horizdist + \dxpm, \linetype,
+    fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+    \node [draw, cross out, minimum size=1.0em, below of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+    \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+    \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$-$}};
+}
+
 \newcommand{\kPlusPlusDown}[3]{
     \def\dxpm{#3};
 
@@ -336,7 +379,7 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
     \node [below of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
 }
-
+% left up
 \newcommand{\kMinusPlusUp}[3]{
 
     \def\dxpm{#3};
@@ -399,6 +442,53 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
     \node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
 }
+\newcommand{\kPlusPlusUpB}[3]{
+	
+	\def\dxpm{#3};
+	
+	\ifx\dxpm\empty
+	\def\dxpm{0};
+	\else
+	\fi
+	
+	\node [draw=\linecolor, circle,minimum size=1.5em, below of= #1, node distance= \horizdist+\dxpm, \linetype,
+	fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+	\node [draw, cross out, minimum size=1.0em, below of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+	\node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+	\node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+\newcommand{\kPlusPlusUpA}[3]{
+	
+	\def\dxpm{#3};
+	
+	\ifx\dxpm\empty
+	\def\dxpm{0};
+	\else
+	\fi
+	
+	\node [draw=\linecolor, circle,minimum size=1.5em, above of= #1, node distance= \horizdist+\dxpm, \linetype,
+	fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+	\node [draw, cross out, minimum size=1.0em, above of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+	\node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+	\node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+\newcommand{\kPlusPlusUpL}[3]{	
+	
+\def\dxpm{#3};
+
+\ifx\dxpm\empty
+\def\dxpm{0};
+\else
+\fi
+
+\node [draw=\linecolor, circle,minimum size=1.5em, left of= #1, node distance= \horizdist+\dxpm, \linetype,
+fill=\backgroundcolor, drop shadow={opacity=\dark}, font=\textsize] (#2) {};
+\node [draw, cross out, minimum size=1.0em, left of= #1, node distance= \horizdist + \dxpm, thin, draw=black] {};
+\node [left of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+\node [above of= #2, node distance = 0.45em] () { \color{\colortext}\tiny{$+$}};
+}
+
+% left up down
 \newcommand{\kPlusPlusMinus}[3]{
 
     \def\dxpm{#3};
@@ -632,59 +722,98 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 
 
 %  Mark Visible Circular Nodes
-%% Usage: [optional distance shift]{optional node label}{from node label}{to current node label}
 
-% Place Node Right
-\newcommand{\kMarkNodeRight}[4][]{
-    \def\dxnr{#1};
-
-    \ifx\dxnr\empty
-    \def\dxnr{0};
-    \else
-    \fi
-    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
-    right of = #3, node distance= 1.2cm + \dxnr] (#4) {\textsize{#2}};
-
-}
+% Place Node with variable x-y coordinate shift
+%% Usage: {optional x distance shift}{optional y distance shift}{empty node text label}{from node label}{to current node label}
 
 % Place Node Left
-\newcommand{\kMarkNodeLeft}[4][]{
-    \def\dxnl{#1};
-
-    \ifx\dxnl\empty
-    \def\dxnl{0};
+\newcommand{\kMarkNodeLeft}[5]{
+    \def\dxnlx{#1};
+	\def\dynly{#2};
+	
+    \ifx\dxnlx\empty
+    \def\dxnlx{0};
     \else
-    \fi
-    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
-    left of = #3, node distance= 1.2cm + \dxnl] (#4) {\textsize{#2}};
-
+    \fi	
+	\ifx\dynly\empty
+    \def\dynly{0};
+    \else
+    \fi		
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em,
+    left of = #4, node distance= 1.2cm + \dxnlx, yshift=\dynly, label=\textsize{#3}] (#5) {};	
 }
+
+% Place Node Right
+\newcommand{\kMarkNodeRight}[5]{
+    \def\dxnrx{#1};
+	\def\dynry{#2};
+	
+    \ifx\dxnrx\empty
+    \def\dxnrx{0};
+    \else
+    \fi	
+	\ifx\dynry\empty
+    \def\dynry{0};
+    \else
+    \fi		
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em,
+    right of = #4, node distance= 1.2cm + \dxnrx, yshift=\dynry, label=\textsize{#3}] (#5) {};	
+}
+
 % Place Node Above
-\newcommand{\kMarkNodeAbove}[4][]{
-    \def\dxna{#1};
-
-    \ifx\dxna\empty
-    \def\dxna{0};
+\newcommand{\kMarkNodeAbove}[5]{
+    \def\dxnax{#1};
+	\def\dynay{#2};
+	
+    \ifx\dxnax\empty
+    \def\dxnax{0};
     \else
-    \fi
-    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
-    above of = #3, node distance= 1.2cm + \dxna] (#4) {\textsize{#2}};
-    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
-    above of = #3, node distance= 1.2cm + \dxna] (#4) {\textsize{#2}};
-
+    \fi	
+	\ifx\dynay\empty
+    \def\dynay{0};
+    \else
+    \fi		
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em,
+    above of = #4, node distance= 1.2cm + \dxnax, yshift=\dynay, label=\textsize{#3}] (#5) {};	
 }
+
 % Place Node Below
-\newcommand{\kMarkNodeBelow}[4][]{
-    \def\dxnb{#1};
-
-    \ifx\dxnb\empty
-    \def\dxnb{0};
+\newcommand{\kMarkNodeBelow}[5]{
+    \def\dxnbx{#1};
+	\def\dynby{#2};
+	
+    \ifx\dxnbx\empty
+    \def\dxnbx{0};
     \else
-    \fi
-    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em,
-    below of = #3, node distance= 1.2cm + \dxnb] (#4) {\textsize{#2}};
+    \fi	
+	\ifx\dynby\empty
+    \def\dynby{0};
+    \else
+    \fi		
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em,
+    below of = #4, node distance= 1.2cm + \dxnbx, yshift=\dynby, label=\textsize{#3}] (#5) {};	
+}
+
+% Place Node At Coordinate
+%% Usage: {optional x distance shift}{optional y distance shift}{empty text-label}{current node coordinate}
+\newcommand{\kMarkNode}[4]{
+    \def\dxncsx{#1};
+	\def\dyncsy{#2};
+	
+    \ifx\dxncsx\empty
+    \def\dxncsx{0};
+    \else
+    \fi	
+	\ifx\dyncsy\empty
+    \def\dyncsy{0};
+    \else
+    \fi	
+	
+    \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.3em, 
+	node distance= 0cm + \dxncsx, yshift=\dyncsy, label=\textsize{#3}] (#4) {};
 
 }
+
 
 % Place a Reference Invisible Node relative to other nodes
 %% Usage: [optional distance shift]{from node label}{to current coordinate label}{direction shift}{coordinate text label}
@@ -732,37 +861,751 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 
 % Place a Reference Invisible Node at any specific coordinate
 %% Usage: {current coordinate label}{coordinate (x,y)}
-\newcommand{\kJumpCS}[2]{
-    \coordinate (#1) at (#2);
+\newcommand{\kJumpCS}[2][0,0]{
+    \coordinate (#2) at (#1);
 }
 
 % Links %% swap, near end,mid, add label text above lines or besides
 %% Usage: [optional signal label]{from node label}{to node label}
-
 % Link Left or Right, Up or Down
 \newcommand{\kLink}[3][]{
-    \draw [-latex,\linecolor, \linepathtype] (#2) -- node[auto,above] {\textsize{#1}} (#3);
+    \draw [-latex,\linecolor, \linepathtype] (#2) -- node[auto] {\textsize{#1}} (#3);
 }
 % no arrow
 \newcommand{\kLinkn}[3][]{
     \draw [\linecolor, \linepathtype] (#2) -- node[auto,above] {\textsize{#1}} (#3);
 }
+%% Vector link variant
+% Link Left or Right, Up or Down
+\newcommand{\kVecLink}[3][]{
+    \draw [-latex,\linecolor, veclinetype] (#2) -- node[auto] {\textsize{#1}} (#3);
+}
+% no arrow
+\newcommand{\kVecLinkn}[3][]{
+    \draw [\linecolor, veclinetype] (#2) -- node[auto,above] {\textsize{#1}} (#3);
+}
+
+%% Link Directed TODO: investigate use
+%% Usage: [optional signal link label]{from node label}{to node label}{from-to node direction shift}
+% Directed Link Left or Right, Up or Down
+\newcommand{\kLinkdir}[4][]{
+    \coordinate (tmp) at ($(#2.west) + (0,#4)$);
+    \draw[-latex, \linecolor, \linepathtype] (tmp) -- node[auto] {\textsize{#1}} ($(#3.east) + (0,#4)$);
+}
+% no arrow
+\newcommand{\kLinkndir}[4][]{
+    \coordinate (tmp) at ($(#2.west) + (0,#4)$);
+    \draw[\linecolor, \linepathtype] (tmp) -- node[auto] {\textsize{#1}} ($(#3.east) + (0,#4)$);
+}
+
+%% Vector link variant
+\newcommand{\kVecLinkdir}[4][]{
+    \coordinate (tmp) at ($(#2.west) + (0,#4)$);
+    \draw[-latex, \linecolor, veclinetype] (tmp) -- node[auto] {\textsize{#1}} ($(#3.east) + (0,#4)$);
+}
+% no arrow
+\newcommand{\kVecLinkndir}[4][]{
+    \coordinate (tmp) at ($(#2.west) + (0,#4)$);
+    \draw[\linecolor, veclinetype] (tmp) -- node[auto] {\textsize{#1}} ($(#3.east) + (0,#4)$);
+}
+
 % Link Horizontal(Right or Left) Vertical(Up or Down)
-%% Usage: [optional link label]{from node label}{to current node label}{direction}{direction shift}
+%% Usage: [optional link label]{from node label}{to current node label}{direction shift}{optional edge mark label point}
 
 % Link: Left Up, Left Down, Right Up, Right Down
 
-\newcommand{\kLinkHV}[5][]{
-    \def\direct{#4};
-    \draw[-latex, \linecolor, \linepathtype] (#2) -|  node[near end, above left] {\textsize{#1}} ($(#3.\direct) + (0,#5)$);
+\newcommand{\kLinkHV}[6][]{% TODO:extend changes made here to its other HV variants
+    \def\dxpos{#5};
+    \ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+	
+	\def\dypos{#4};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \yt - \yf;
+        if \asumxft>0 then {let \directn = south;} else {
+            if \asumxft<0 then {let \directn = north;} else {
+                let \directn = 0;
+            };
+        };
+	    \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \fdirectn = east;} else {
+            if \asumxft<0 then {let \fdirectn = west;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+\ifnum#6=0
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=1
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=2
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=3
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=4
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=5
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=6
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=7
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=8
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+    % \def\mkpt{#5};
+    % \ifx\mkpt\empty
+    % \else
+    % \coordinate (#5) at (\xf,\yt); % markpt coordinate
+    % \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em] at (\xt,\yf) {};
+    % \fi
 }
-% Link Vertical(Up or Down) Horizontal(Right or Left)
-% Link Up Left, Up Right, Down Left, Down Right
-\newcommand{\kLinkVH}[5][]{
-    \def\direct{#4};
-    \draw[-latex, \linecolor, \linepathtype] (#2) |-  node[near end, below] {\textsize{#1}} ($(#3.\direct) + (0,#5)$);
+%% vector variant
+\newcommand{\kVecLinkHV}[6][]{% TODO:extend changes made here to its other HV variants
+    \def\dxpos{#5};
+    \ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+	
+	\def\dypos{#4};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \yt - \yf;
+        if \asumxft>0 then {let \directn = south;} else {
+            if \asumxft<0 then {let \directn = north;} else {
+                let \directn = 0;
+            };
+        };
+	    \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \fdirectn = east;} else {
+            if \asumxft<0 then {let \fdirectn = west;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+\ifnum#6=0
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=1
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=2
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=3
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=4
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=5
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=6
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=7
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=8
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
 }
 
+%% No direction
+\newcommand{\kLinknHV}[6][]{% TODO:extend changes made here to its other HV variants
+    \def\dxpos{#5};
+    \ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+	
+	\def\dypos{#4};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \yt - \yf;
+        if \asumxft>0 then {let \directn = south;} else {
+            if \asumxft<0 then {let \directn = north;} else {
+                let \directn = 0;
+            };
+        };
+	    \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \fdirectn = east;} else {
+            if \asumxft<0 then {let \fdirectn = west;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+\ifnum#6=0
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=1
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=2
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=3
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=4
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=5
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=6
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=7
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=8
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+    % \def\mkpt{#5};
+    % \ifx\mkpt\empty
+    % \else
+    % \coordinate (#5) at (\xf,\yt); % markpt coordinate
+    % \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em] at (\xt,\yf) {};
+    % \fi
+}
+%% vector variant
+\newcommand{\kVecLinknHV}[6][]{% TODO:extend changes made here to its other HV variants
+    \def\dxpos{#5};
+    \ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+	
+	\def\dypos{#4};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \yt - \yf;
+        if \asumxft>0 then {let \directn = south;} else {
+            if \asumxft<0 then {let \directn = north;} else {
+                let \directn = 0;
+            };
+        };
+	    \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \fdirectn = east;} else {
+            if \asumxft<0 then {let \fdirectn = west;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+\ifnum#6=0
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=1
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=2
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=3
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=4
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=5
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=6
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=7
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\ifnum#6=8
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[midway, below] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\else
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (0,\dypos)$) -|  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (\dxpos,0)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+}
+
+
+% Link Vertical(Up or Down) Horizontal(Right or Left)
+% Link Up Left, Up Right, Down Left, Down Right
+\newcommand{\kLinkVH}[6][]{ % TODO:extend changes made here to its other VH variants
+
+    \def\dypos{#4};
+	\def\dxpos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	\ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \directn = west;} else {
+            if \asumxft<0 then {let \directn = east;} else {
+                let \directn = 0;
+            };
+        };
+		\asumyft = \yt - \yf;
+        if \asumyft>0 then {let \fdirectn = north;} else {
+            if \asumyft<0 then {let \fdirectn = south;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+	
+\ifnum#6=0
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=1
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=2
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=3
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=4
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=5
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=6
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=7
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=8
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\draw[-latex, \linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[auto, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+    % \def\mkpt{#6};
+    % \ifx\mkpt\empty
+    % \else
+    % \coordinate (hat3) at ($(#3.\directn) + (0,\dypos)$);
+    % \newdimen\xtohat;
+    % \newdimen\ytohat;%
+    % \path (hat3); \pgfgetlastxy{\xtohat}{\ytohat};
+    % \coordinate (#5) at (\xf,\ytohat); % markpt coordinate
+    % \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=0.3em] at (\xf,\ytohat) {};
+    % \fi
+
+
+}
+
+%% vector variant
+\newcommand{\kVecLinkVH}[6][]{ % TODO:extend changes made here to its other VH variants
+
+    \def\dypos{#4};
+	\def\dxpos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	\ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \directn = west;} else {
+            if \asumxft<0 then {let \directn = east;} else {
+                let \directn = 0;
+            };
+        };
+		\asumyft = \yt - \yf;
+        if \asumyft>0 then {let \fdirectn = north;} else {
+            if \asumyft<0 then {let \fdirectn = south;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+
+\ifnum#6=0
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=1
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=2
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=3
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=4
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=5
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=6
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=7
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=8
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\draw[-latex, \linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[auto, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+}
+
+%% No Direction
+\newcommand{\kLinknVH}[6][]{ % TODO:extend changes made here to its other VH variants
+
+    \def\dypos{#4};
+	\def\dxpos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	\ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \directn = west;} else {
+            if \asumxft<0 then {let \directn = east;} else {
+                let \directn = 0;
+            };
+        };
+		\asumyft = \yt - \yf;
+        if \asumyft>0 then {let \fdirectn = north;} else {
+            if \asumyft<0 then {let \fdirectn = south;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+	
+\ifnum#6=0
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=1
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=2
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=3
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=4
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=5
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=6
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=7
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=8
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\draw[\linecolor, \linepathtype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[auto, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+}
+
+%% vector variant
+\newcommand{\kVecLinknVH}[6][]{ % TODO:extend changes made here to its other VH variants
+
+    \def\dypos{#4};
+	\def\dxpos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+	\ifx\dxpos\empty
+    \def\dxpos{0};
+    \else
+    \fi
+
+    \coordinate (fromn) at (#2);% from node coordinate
+    \coordinate (ton) at (#3);% to node coordinate
+
+
+    % extract x and y coordinates
+    \newdimen\xf;%
+    \newdimen\yf;%
+    \path (fromn); \pgfgetlastxy{\xf}{\yf};
+    \newdimen\xt;%
+    \newdimen\yt;%
+    \path (ton); \pgfgetlastxy{\xt}{\yt};
+
+    \newdimen\asumxft;
+
+    \tikzmath{
+        \asumxft = \xt - \xf;
+        if \asumxft>0 then {let \directn = west;} else {
+            if \asumxft<0 then {let \directn = east;} else {
+                let \directn = 0;
+            };
+        };
+		\asumyft = \yt - \yf;
+        if \asumyft>0 then {let \fdirectn = north;} else {
+            if \asumyft<0 then {let \fdirectn = south;} else {
+                let \fdirectn = 0;
+            };
+        };
+    }
+
+
+\ifnum#6=0
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=1
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=2
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=3
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[near end, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=4
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=5
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=6
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, above left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=7
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below right] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\ifnum#6=8
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[midway, below left] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\else
+\draw[\linecolor, veclinetype] ($(#2.\fdirectn) + (\dxpos,0)$) |-  node[auto, above] {\textsize{#1}} ($(#3.\directn) + (0,\dypos)$);
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+\fi
+
+}
+
+
+% Link Full Feedback/FeedForward Horizontal(Right or Left) to Vertical(Up or Down)
+% to  Horizontal(Right or Left)
 %% Usage: {optional link scale}{link label}{from node}{to node}{from node direction shift}{to node direction shift}
 
 \newcommand{\kLinkHVHRight}[6][]{
@@ -775,6 +1618,17 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \coordinate (tmp) at ($(#3.east) + (0,#5) + (0.33+\dxr,0)$);
     \draw[-latex, \linecolor, \linepathtype] (tmplr) -| (tmp) node[at end, below right] {\textsize{#2}} |-($(#4.east) + (0,#6)$);
 }
+% vector
+\newcommand{\kVLinkHVHRight}[6][]{
+    \def\dxr{#1};
+    \ifx\dxr\empty
+    \def\dxr{0};
+    \else
+    \fi
+    \coordinate (tmplr) at ($(#3.east) + (0,#5)$);
+    \coordinate (tmp) at ($(#3.east) + (0,#5) + (0.33+\dxr,0)$);
+    \draw[-latex, \linecolor, veclinetype] (tmplr) -| (tmp) node[at end, below right] {\textsize{#2}} |-($(#4.east) + (0,#6)$);
+}
 \newcommand{\kLinkHVHLeft}[6][]{
     \def\dxl{#1};
     \ifx\dxl\empty
@@ -785,7 +1639,8 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \coordinate (tmp) at ($(#3.west) + (0,#5) + (-0.33-\dxl,0)$);
     \draw[-latex, \linecolor, \linepathtype] (tmpll) -| (tmp) node[at end, above left] {\textsize{#2}} |- ($(#4.west) + (0,#6)$);
 }
-% Link Full Feedback/FeedForward Horizontal(Right or Left) Vertical(Up or Down)
+
+% Link Full Feedback/FeedForward Vertical(Up or Down) to Horizontal(Right or Left) to Vertical(Up or Down)
 %% Usage: {optional link shift}{unity link label}{from node}{to node}{from node direction shift}{to node direction shift}
 
 % Above
@@ -814,6 +1669,7 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,1cm-\dxb) $);
     \draw [-latex,\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.north) + (#6,0)$);
 }
+
 % Below
 \newcommand{\kLinkVHHVBelow}[6][]{
     \def\dxb{#1};
@@ -840,6 +1696,62 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
 
 	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,-1cm-\dxb) $);
     \draw [-latex,\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.south) + (#6,0)$);
+}
+
+% No directions
+% Above
+\newcommand{\kLinknVHHVAbove}[6][]{
+    \def\dxb{#1};
+    \ifx\dxb\empty
+    \def\dxb{0};
+    \else
+    \fi
+    \coordinate (tmpb) at ($(#3.north) + (#5,0)$);
+    \coordinate (tmpc) at ($(#4.north) + (#6,0)$);
+
+    \newdimen\xca;
+    \newdimen\yca;
+    \path (tmpb); \pgfgetlastxy{\xca}{\yca};
+    \newdimen\xcb;
+    \newdimen\ycb;
+    \path (tmpc); \pgfgetlastxy{\xcb}{\ycb};
+
+    \newdimen\xcr;
+
+    \tikzmath{
+        \xcr = 0.5 * (\xca+\xcb);
+    }
+
+	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,1cm-\dxb) $);
+    \draw [\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.north) + (#6,0)$);
+}
+
+% Below
+\newcommand{\kLinknVHHVBelow}[6][]{
+    \def\dxb{#1};
+
+    \ifx\dxb\empty
+    \def\dxb{0};
+    \else
+    \fi
+    \coordinate (tmpb) at ($(#3.south) + (#5,0)$);
+    \coordinate (tmpc) at ($(#4.south) + (#6,0)$);
+
+    \newdimen\xca;
+    \newdimen\yca;
+    \path (tmpb); \pgfgetlastxy{\xca}{\yca};
+    \newdimen\xcb;
+    \newdimen\ycb;
+    \path (tmpc); \pgfgetlastxy{\xcb}{\ycb};
+
+    \newdimen\xcr;
+
+    \tikzmath{
+        \xcr = 0.5 * (\xca+\xcb);
+    }
+
+	\coordinate [label=\tiny{#2}] (tmp) at ($ (\xcr,\yca)  + (0,-1cm-\dxb) $);
+    \draw [\linecolor, \linepathtype] (tmpb) |- (tmp) -| ($(#4.south) + (#6,0)$);
 }
 
 % Link  Feedback/FeedForward with a TF Block in between
@@ -920,7 +1832,14 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \else
     \fi
 
-    \coordinate (tmpn) at ($(#2.west) + (0,#5)$);
+    % to add to all
+    \def\dypos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.west) + (0,\dypos)$);
 
     \node[left of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
 
@@ -1014,69 +1933,193 @@ mark=at position 0.5 with {\arrow{Latex[]}}},postaction={decorate}}}
     \draw[-latex, \linecolor, \linepathtype] (tmpo)--(#3);
 }
 
+%% Vector variants
+\newcommand{\kVecInRight}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.east) + (0,#5)$);
+
+    \node[right of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (#3)--(tmpn);
+}
+
+\newcommand{\kVecInLeft}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    % to add to all
+    \def\dypos{#5};
+    \ifx\dypos\empty
+    \def\dypos{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.west) + (0,\dypos)$);
+
+    \node[left of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (#3)--(tmpn);
+}
+
+\newcommand{\kVecInUp}[5][]{
+    \def\dxina{#1};
+    \ifx\dxina\empty
+    \def\dxina{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.north) + (#5,0)$);
+
+    \node[above of= tmpn, node distance= 1.2cm + \dxina, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (#3)--(tmpn);
+}
+
+\newcommand{\kVecInDown}[5][]{
+    \def\dxinr{#1};
+    \ifx\dxinr\empty
+    \def\dxinr{0};
+    \else
+    \fi
+
+    \coordinate (tmpn) at ($(#2.south) + (#5,0)$);
+
+    \node[below of= tmpn, node distance= 1.2cm + \dxinr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (#3)--(tmpn);
+}
+
+
+% Link Outputs Invisible Node
+%% Usage: [optional distance shift]{from node label}{to current node label}{out signal label}{direction shift}
+\newcommand{\kVecOutRight}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.east) + (0,#5)$);
+
+    \node[right of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (tmpo)--(#3);
+}
+
+\newcommand{\kVecOutLeft}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.west) + (0,#5)$);
+
+    \node[left of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (tmpo)--(#3);
+}
+
+\newcommand{\kVecOutUp}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.north) + (#5,0)$);
+
+    \node[above of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (tmpo)--(#3);
+}
+
+\newcommand{\kVecOutDown}[5][]{
+    \def\dxoutr{#1};
+    \ifx\dxoutr\empty
+    \def\dxoutr{0};
+    \else
+    \fi
+
+    \coordinate (tmpo) at ($(#2.south) + (#5,0)$);
+
+    \node[below of= tmpo, node distance= 1.2cm + \dxoutr, font=\textsize] (#3) {\color{\colortext}#4};
+
+    \draw[-latex, \linecolor, veclinetype] (tmpo)--(#3);
+}
+
+
 % ----------------------------------------------------------------------------------------
 
 % SIGNAL FLOW GRAPHS
 
-\newcommand{\sfgStart}[3]{
+\newcommand{\ksfgStart}[3]{
 	\node[draw,circle,fill=\linecolor,inner sep=0pt, outer sep=0pt, minimum size=0.5em,
 	node distance= \horizdist,label=below:\color{\colortext}\textsize{#3}] (#1) at #2 {};
 }
 
-\newcommand{\sfgNStart}[3]{
+\newcommand{\ksfgNStart}[3]{
 	\node[draw,circle,fill=\linecolor,inner sep=0pt, outer sep=0pt, minimum size=0.5em,
 	node distance= \horizdist,label=below:\color{\colortext}\textsize{#3}] (#1) at #2 {};
 }
 
-\newcommand{\sfgNodeR}[5][]{
+\newcommand{\ksfgNodeR}[5][]{
     \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
 	right of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
     \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
 }
 
-\newcommand{\sfgNodeL}[5][]{
+\newcommand{\ksfgNodeL}[5][]{
     \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
 	left of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
     \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
 }
 
-\newcommand{\sfgNodeU}[5][]{
+\newcommand{\ksfgNodeU}[5][]{
     \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
 	above of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
     \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
 }
 
-\newcommand{\sfgNodeD}[5][]{
+\newcommand{\ksfgNodeD}[5][]{
     \node[fill=\linecolor,circle,inner sep=0pt, outer sep=0pt, minimum size=.5em,
 	below of = #2, node distance= \sfghorizdist,label=#5:\color{\colortext}\textsize{#4}] (#3) {};
     \draw [\linecolor, \linepathtype, midarrow] (#2)-- node[auto,above] {\textsize{#1}} (#3);
 }
 
 
-\newcommand{\sfgLinkSelfR}[2][]{
+\newcommand{\ksfgLinkSelfR}[2][]{
 	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
 	(#2) to [out=45,in=-45] node[right] {\textsize{#1}} (#2);
 }
 
-\newcommand{\sfgLinkSelfL}[2][]{
+\newcommand{\ksfgLinkSelfL}[2][]{
 	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
 	(#2) to [out=-135,in=-135] node[left] {\textsize{#1}} (#2);
 }
 
-\newcommand{\sfgLinkSelfU}[2][]{
+\newcommand{\ksfgLinkSelfU}[2][]{
 	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
 	(#2) to [in=45,out=135] node[above] {\textsize{#1}} (#2);
 }
 
-\newcommand{\sfgLinkSelfD}[2][]{
+\newcommand{\ksfgLinkSelfD}[2][]{
 	\draw[\linecolor, \linepathtype, midarrow,looseness=50]
 	(#2) to [in=225,out=315] node[below] {\textsize{#1}} (#2);
 }
 
-\newcommand{\sfgCLinkFlip}[4][]{
+\newcommand{\ksfgCLinkFlip}[4][]{
 	\draw[midarrow, bend right=60] (#2) to node[#4] {\textsize{#1}} (#3);
 }
-\newcommand{\sfgCLink}[4][]{
+\newcommand{\ksfgCLink}[4][]{
 	\draw[midarrow, bend left=60] (#2) to node[#4] {\textsize{#1}} (#3);
 }
 %% node label positioning: at start near start midway near end at end, above below, sloped
