@@ -1,4 +1,5 @@
-This is the file README for the kblocks package, v.2.0.
+kblocks package, v.2.0.
+![kblocks example demo diagram](/intro.png)
 
 ## Description
 A Macro Package to Easily typeset Control Block Diagrams and Signal Flow Graphs with TikZ/PGF
